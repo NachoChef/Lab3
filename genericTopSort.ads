@@ -1,13 +1,18 @@
-generic  -- You may modify this as required but observe the spirit.
-	type SortElement is private;  -- An element J (or K) of the partial ordering J < K processed
-             -- by the topological sort.  J and K represent objects in the partial ordering.
-                   
-	with function get(Item:  out SortElement) return SortElement;  -- Reads J or K.
-	with procedure put(Item:  in SortElement);  -- Print the value of J or K.
-	with function takesPrecedence(relation : in String; predecessor : in SortElement; successor : in sortElement);
-
-package GenericTopologicalSort is
-	procedure TopologicalSort; ( …);
-   procedure initialize ( );
-	--  additional procedures/functions to export if required
-end GenericTopologicalSort;
+generic
+	type SortElement is private;
+	with function get(Item:  out SortElement) return SortElement;
+	with procedure put(Item:  in SortElement);
+	with function takesPrecedence(relation : in String; predecessor : in SortElement; successor : in sortElement); 
+package GenericTopSort is
+   type Parent;
+   type ParentPointer is access all Parent'Class;
+   type Parent is tagged record
+      next : ParentPointer := null;
+      
+   end record;   
+      
+   type myNames is array(Positive range <>) of Ada.Unbounded.String;
+	procedure TopologicalSort ( …);
+   procedure initialize (inputfile : in string; outputfile : string);
+   function map (names : in myNames; obj : in SortElement) return integer;
+end GenericTopSort;
