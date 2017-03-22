@@ -10,7 +10,7 @@ package body GenericTopSort is
    type Node;
    type NodePointer is access Node;
    type Node is tagged record
-   	Suc:	SortElement := null; --SortElement is the generic
+   	Suc:	Integer; --array index for successors
    	Next:	NodePointer := null;
    end record;
 
@@ -29,7 +29,7 @@ package body GenericTopSort is
             return loc;
          end if;
       end loop;
-      return 0;      --if item not found, will cause index check error
+      return -1;      --if item not found, will cause index check error
    end map;
    
    procedure TopologicalSort(struct : SortStructure; KN : integer) is 
@@ -54,7 +54,6 @@ package body GenericTopSort is
                R := R + 1;
             end if;
             F := F + 1;
-            Free(temp); --declare unchecked deallocation
          end loop;
       end loop;
       
@@ -109,7 +108,5 @@ package body GenericTopSort is
          end loop;
       end;
    end initialize;
-         
-         
    
 end GenericTopSort;
