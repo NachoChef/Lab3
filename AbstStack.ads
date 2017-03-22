@@ -1,6 +1,11 @@
-package AbstStck is
-  type AbstractStack is limited private;
+--Justin Jones
+--COSC 3319.01 Spring 2017
+--Lab 3
+--
+--***'B' OPTION***
 
+package AbstStack is
+  type AbstractStack is limited private;
   type AbstractStackElement is tagged private;
   type AbstractStackElementPtr is 
           access all AbstractStackElement'Class;
@@ -20,4 +25,4 @@ private
       Count: integer := 0;
       Top: AbstractStackElementPtr := null;
     end record;
-end AbstStck;
+end AbstStack;

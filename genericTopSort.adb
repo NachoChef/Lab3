@@ -1,56 +1,58 @@
+--Justin Jones
+--COSC 3319.01 Spring 2017
+--Lab 3
 --
---
---
---
---
---
-
+--***'B' OPTION***
+with Ada.Text_IO; use Ada.Text_IO;
 package body GenericTopSort is
-   type QLink is array(Positive range <>) of integer;
-   type Node;
-   type NodePointer is access Node;
-   type Node is tagged record
-   	Suc:	SortElement := null; --SortElement is the generic
-   	Next:	NodePointer := null;
-   end record;
-
-   type Element is record
-   	Count:  Integer := 0; --count/queue link
-   	Top:	AbstStack(SortElement);
-   end record;
-
-   type SortStructure is array(Positive range <>) of Element;
+   
+   procedure push (NewNode : in NodePointer; NodeStack : in out NodePointer) is
+      nodeTemp : NodePointer := NewNode;
+   begin
+      nodeTemp.Next := NodeStack;
+      NodeStack.Next := nodeTemp;
+   end push;
+   
+   procedure pop (outNode : out NodePointer; NodeStack : in out NodePointer) is
+   begin
+      if NodeStack /= null then
+         outNode := NodeStack;
+         NodeStack := outNode.Next;
+      end if;
+   end pop;
    
    --retrieves position of an object label
    function map (names : in myNames; obj : in SortElement) return integer is
    begin
-      for loc in nameArr'Range loop
-         if nameArr(loc) = obj then      --overload this
+      for loc in names'Range loop
+         if obj.equals(names(loc)) then      --fix this
             return loc;
          end if;
       end loop;
-      return 0;      --if item not found, will cause index check error
+      return -1;      --if item not found, will cause index check error
    end map;
    
-   procedure TopologicalSort(struct : SortStructure; KN : integer) is 
+   procedure TopologicalSort(struct : SortStructure; NA : integer; names : myNames) is 
+      myStruct : SortStructure := struct;
       F, R : integer := 1;
       myQ : QLink(1..struct'Last); --will hold object indices in order for processing
       temp : SortElement;
+      KN : integer := NA;
    begin 
       for pos in struct'Range loop
          if struct(pos).Count = 0 then
-            myQ(R) := map(pos);     --retrieve index of object
+            myQ(R) := pos;     --retrieve index of object
             R := R + 1;
          end if;
       end loop;
       
       while F <= R loop
          KN := KN - 1;
-         while struct(F).next /= null loop
-            pop(struct(F).next, temp);
-            struct(map(temp)).Count := struct(map(temp)).Count - 1;
-            if struct(map(temp)).Count = 0 then
-               myQ(R) := map(struct(map(temp).Suc));
+         while struct(F).Top /= null loop
+            pop(temp, struct(F).Top);
+            mystruct(map(names, temp)).Count := mystruct(map(names, temp)).Count - 1;
+            if mystruct(map(names, temp)).Count = 0 then
+               myQ(R) := map(mystruct(map(names, temp.Next)).Suc);
                R := R + 1;
             end if;
             F := F + 1;
@@ -59,8 +61,8 @@ package body GenericTopSort is
       end loop;
       
       if KN = 0 then --successful, print nodes
-         for item in myQ'Range loop
-            print(struct(myQ(item)));
+         for loc in myQ'Range loop
+            put(mystruct(myQ(loc)));
          end loop;
       else
          for k in myQ'Range loop
@@ -70,11 +72,11 @@ package body GenericTopSort is
       
       --probably seperate method
       
-         for k in 1..struct'Last loop
-            pop(struct(k).top, temp);
+         for k in 1..mystruct'Last loop
+            pop(mystruct(k).top, temp);
             struct(k).top := null; --pulling succ pointers off of object
             while (temp /= null) and (myQ(temp.suc) = null) loop
-               myQ(map(p.Suc)) := k;
+               myQ(map(temp.Suc)) := k;
                if temp /= null then
                   pop(temp, temp);
                end if;
@@ -86,6 +88,7 @@ package body GenericTopSort is
 
    procedure initialize (inputfile : in string; outputfile : string) is
       inFile : File_Type;
+      size : integer;
    begin
       Open(inFile, in_file, file);
       Get(inFile, size);
@@ -109,7 +112,5 @@ package body GenericTopSort is
          end loop;
       end;
    end initialize;
-         
-         
    
 end GenericTopSort;

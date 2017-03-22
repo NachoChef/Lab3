@@ -1,4 +1,10 @@
-package body AbstStck is
+--Justin Jones
+--COSC 3319.01 Spring 2017
+--Lab 3
+--
+--***'B' OPTION***
+
+package body AbstStack is
 procedure Push(Stack: access AbstractStack; Y: in AbstractStackElementPtr) is
     Pt: AbstractStackElementPtr;
   begin
@@ -18,4 +24,4 @@ procedure Push(Stack: access AbstractStack; Y: in AbstractStackElementPtr) is
 
   function StackSize(Stack: AbstractStack) return integer is
   begin  return Stack.Count;  end StackSize;
-end AbstStck;
+end AbstStack;
