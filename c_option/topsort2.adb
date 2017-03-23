@@ -3,18 +3,20 @@ with Ada.Text_IO; use Ada.Text_IO;
 package body topSort2 is
 
    procedure initialize (size : integer) is
-   begin      
+   NA : integer;
+   begin     
+      Put("Enter the number of relations: "); Get(NA); 
       declare
          F, R : integer;
          tempTop : NodePtr;
          pred, succ : integer;
-         NA, KN : integer;
-         Top : SortStructure(1..size); 
-         Qlink : array(0..size) of integer;  
-         Count : array(1..size) of integer := (others => 0);
+         KN : integer := NA;
+         Top : SortStructure(1..NA); 
+         Qlink : array(0..NA) of integer;  
+         Count : array(1..NA) of integer := (others => 0);
          K : integer;
       begin
-         Put("Enter the number of relations: "); Get(NA);
+         
          for i in 1..NA loop
             Put("Enter the predeccessor: "); Get(pred); 
             Put("Enter the successor: "); Get(succ);
@@ -24,11 +26,10 @@ package body topSort2 is
             Top(pred) := tempTop;
             Count(succ) := Count(succ) + 1;
          end loop;
-         KN := size;
                  
          R := 0;
          Qlink(0) := 0;
-         for k in 1..size loop  
+         for k in 1..NA loop  
             if Count(K) = 0 then
                Qlink(R) := k;
                R := k;
@@ -60,11 +61,11 @@ package body topSort2 is
             end loop;
          else 
             Put("The following nodes are in a loop: ");
-            for loc in 1..size loop      
+            for loc in 1..NA loop      
                Qlink(loc) := 0;
             end loop;
             
-            for k in 1..size loop
+            for k in 1..NA loop
                tempTop := Top(k);
                Top(k) := null;  
                while tempTop /= null and then Qlink(tempTop.Suc) = 0 loop   
