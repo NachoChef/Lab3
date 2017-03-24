@@ -6,37 +6,11 @@
 with Ada.Text_IO; use Ada.Text_IO;
 package body GenericTopSort is
    
-   procedure push (NewNode : in NodePointer; NodeStack : in out NodePointer) is
-      nodeTemp : NodePointer := NewNode;
-   begin
-      nodeTemp.Next := NodeStack;
-      NodeStack.Next := nodeTemp;
-   end push;
-   
-   procedure pop (outNode : out NodePointer; NodeStack : in out NodePointer) is
-   begin
-      if NodeStack /= null then
-         outNode := NodeStack;
-         NodeStack := outNode.Next;
-      end if;
-   end pop;
-   
-   --retrieves position of an object label
-   function map (names : in myNames; obj : in SortElement) return integer is
-   begin
-      for loc in names'Range loop
-         if obj.equals(names(loc)) then      --fix this
-            return loc;
-         end if;
-      end loop;
-      return -1;      --if item not found, will cause index check error
-   end map;
-   
-   procedure TopologicalSort(struct : SortStructure; NA : integer; names : myNames) is 
+   procedure TopologicalSort (struct : SortStructure; NA : integer; objList : PPoint) is 
       myStruct : SortStructure := struct;
       F, R : integer := 1;
-      myQ : QLink(1..struct'Last); --will hold object indices in order for processing
-      temp : SortElement;
+      myQ : array(1..struct'Last) of integer := (others => 0); --will hold object indices in order for processing
+      temp : PPoint;
       KN : integer := NA;
    begin 
       for pos in struct'Range loop
@@ -46,10 +20,10 @@ package body GenericTopSort is
          end if;
       end loop;
       
-      while F <= R loop
+      while F < struct'Last loop
          KN := KN - 1;
-         while struct(F).Top /= null loop
-            pop(temp, struct(F).Top);
+         while struct(F).Top.Count /= 0 loop
+            temp := AbstStack.pop(struct(F))
             mystruct(map(names, temp)).Count := mystruct(map(names, temp)).Count - 1;
             if mystruct(map(names, temp)).Count = 0 then
                myQ(R) := map(mystruct(map(names, temp.Next)).Suc);
@@ -85,32 +59,49 @@ package body GenericTopSort is
       end if;
       
    end TopologicalSort;
+   
+   function map (struct : SortStructure; obj : PPoint) return integer is
+      loc : integer := 1;
+   begin
+   loop
+      if struct(loc).obj = obj then
+         return loc;
+      else
+         loc := loc + 1;
+      end if;
+   end loop;
+   end map;
 
-   procedure initialize (inputfile : in string; outputfile : string) is
+   procedure initialize (inputfile : in string; outputfile : in string; objects : PPoint) is
       inFile : File_Type;
       size : integer;
+      objList : PPoint := objects;
    begin
       Open(inFile, in_file, file);
       Get(inFile, size);
       declare
-         struct : SortStructure (0..size);
-         names : myNames(1..size);
-         KN : integer := NA;
+         struct : SortStructure (1..size);
+         NA : integer;
       begin
-         for loc in 1..size loop
-            Get(inFile, names(loc)); --reads & saves all node Names for later reference
+         for i in 1..size loop
+            struct(i).obj := objList;
+            objList := objList.Next;
+            struct(i).Top := new AbstStack(PPoint);
          end loop;
-         while not End_Of_File(inFile) loop
+         
+         Get(inFile, NA);           --get number of relations
+         for i in 1..NA loop
             declare
-               pred : SortElement;
-               succ : SortElement;
+               pred : PPoint;
+               succ : PPoint;
             begin
-               Get(pred, succ); --will construct 2 new objects of SortElement type
-               struct(map (succ)).Count := SortStructure(map (succ)).Count + 1;
-               push(struct(map (pred)).Suc, succ); --adds succ object to pred stack
+               Get(inFile, pred, succ, objects);  --will construct 2 new objects of Parent subtype, parse types
+               struct(map(struct, objects)).Count := SortStructure(map(struct, objects)).Count + 1;
+               push(struct(map(struct, objects)).Suc, succ); --adds succ object to pred stack
             end;
          end loop;
       end;
+      Close(inFile);
    end initialize;
    
 end GenericTopSort;

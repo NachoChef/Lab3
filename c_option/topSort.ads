@@ -1,10 +1,12 @@
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Unchecked_Conversion;
 
 package topSort is
    type Node;
    type NodePtr is access all Node;
+   
    type Node is record
-      Suc : aliased Integer; --points to indices
+      Suc : Integer;
       Next : NodePtr := null;
    end record;
    
@@ -13,8 +15,8 @@ package topSort is
       Top : NodePtr := null;
    end record;      
    
+   function toPTR is new Ada.Unchecked_Conversion(Integer, NodePtr);
    type SortStructure is array(Integer range <>) of Element;
    type myQueue is array(Integer range <>) of integer;
    procedure initialize(size : integer);
-   function check (myQ : myQueue; node : integer) return boolean;
 end topSort;

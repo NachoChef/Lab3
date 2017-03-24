@@ -2,28 +2,15 @@ with Ada.Integer_Text_IO; use Ada.Integer_Text_IO;
 with Ada.Text_IO; use Ada.Text_IO;
 package body topSort is
 
-   --searches queue for specified value, returns true if value found
-   function check (myQ : myQueue; node : integer) return boolean is
-      ret : boolean := false;
-   begin
-      for loc in myQ'Range loop
-         if myQ(loc) = node then
-            ret := true;
-         end if;
-      end loop;
-      return ret;
-   end check;
-
    procedure initialize (size : integer) is
    begin
       declare
-         F, R : integer := 1;
+         F, R, K : integer := 0;
          tempTop : NodePtr;
          pred, succ : integer;
          NA, KN : integer := 0;
          struct : SortStructure(0..size);                    --holds structure elements
-         myQ : myQueue(1..size) := (others => 0);            --tracks array indices
-         Top : myQueue(1..size) := (others => 0);
+         myQ : myQueue(0..size) := (others => 0); 
       begin
          Put("Enter the number of relations: "); Get(NA);
          for i in 1..NA loop
@@ -33,68 +20,81 @@ package body topSort is
             struct(pred).Top := new Node'(succ, tempTop);
             struct(succ).Count := struct(succ).Count + 1;
          end loop;
-         KN := NA+1;
+         
+         KN := NA;
          
          for k in 1..size loop            --initial population
             if struct(k).Count = 0 then
                myQ(R) := k;
-               R := R + 1;
+               R := K;
             end if;
          end loop;
+         F := myQ(0);
+         --R points to rear of Queue, F front
          
-         while F <= size and then myQ(F) /= 0 loop    --while F links to a real node
-            KN := KN - 1;
+         while F /= 0 loop    --while F links to a real node and doesn't exceed size
             tempTop := struct(F).Top;  --pull stack off of node
-            struct(F).Top := null;
             while tempTop /= null loop
+               KN := KN - 1;
                struct(tempTop.Suc).Count := struct(tempTop.Suc).Count - 1;
                if struct(tempTop.Suc).Count = 0 then
                   myQ(R) := tempTop.Suc;
-                  R := R + 1;
+                  R := tempTop.Suc;
                end if;
                tempTop := tempTop.Next;
             end loop;
-            F := F + 1;          --advance to next item in queue
+            F := myQ(F);          --advance to next item in queue
          end loop;
+         New_Line;
          
          if KN = 0 then
             Put("One solution: ");
-            for loc in 1..size loop
-               put(myQ(loc), width => 2);
+            while myQ(F) /= 0 loop
+               put(myQ(F), Width => 2);
+               F := myQ(F);
             end loop;
-         else 
+         else  --print a loop
             Put("The following nodes are in a loop: ");
-            for loc in 1..size loop       --clear queue
-               myQ(loc) := 0;
+            for k in 1..size loop
+               myQ(k) := 0;
             end loop;
-            F := 1;                       --reset front/rear 
-            R := 1;
             
-            for loc in 1..size loop
-               tempTop := struct(loc).Top;
-               struct(loc).Top := null;   --pulls stack off of element
-               while tempTop /= null and then myQ(tempTop.Suc) = 0 loop    --while stack not empty & node not already in list
-                  myQ(tempTop.Suc) := loc;
-                  tempTop := tempTop.Next;
+            --I had to modify this statement in order to find a loop
+            --otherwise, the while structure at the bottom that follows the loop would stop at index 0
+            --moving Qlink(2) = 1, Qlink(1) = 0, Qlink(0) = 0
+            --the unmodified resulting data structure was:
+            -- 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | qlink/index
+            ------------------------------------------------------
+            -- 0 | 0 | 1 | 1 | 6 | 0 | 0 | 2 | 3 | 7 | 
+            --which does not show a loop. Thus the algorithm only marks indices 0, 1, & 2
+            --I also had to not clear the stack for struct(k) until the final while loop.
+            for k in 1..size loop
+               tempTop := struct(k).Top;
+               while tempTop /= null and then myQ(k) = 0 loop
+                  myQ(k) := tempTop.Suc;
+                  if tempTop /= null then
+                     tempTop := tempTop.Next;
+                  end if;
                end loop;
             end loop;
             
-            --find F with myQ(F) /= 0;
-            while myQ(F) = 0 loop
-               F := F + 1;
+            K := 1;
+            while myQ(K) = 0 loop
+               K := K + 1;
             end loop;
             
-            while Top(F) = 0 loop
-               Top(F) := 1;
-               F := myQ(F);
+            loop
+               struct(K).Top := toPTR(1);
+               K := myQ(K);
+            exit when struct(K).Top /= null;
             end loop;
             
-            while Top(F) /= 0 loop
-               put(F, width => 2);
-               Top(F) := 0;
-               F := mYQ(F);
+            while struct(k).Top /= null loop
+               put(struct(k).Top.Suc, width => 2);
+               struct(k).Top := null;
+               K := myQ(k);
             end loop;
-            
+
          end if;
        end;
    end initialize;
